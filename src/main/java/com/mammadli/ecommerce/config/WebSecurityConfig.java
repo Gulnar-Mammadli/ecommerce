@@ -2,8 +2,10 @@ package com.mammadli.ecommerce.config;
 
 import com.mammadli.ecommerce.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -16,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -49,19 +52,15 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/public", "/api/auth/signup", "/api/auth/authenticate").permitAll()
-                        .requestMatchers("/api/auth/admin","/api/auth/test").hasAuthority("ADMIN")
-                        .requestMatchers("/api/auth/user").hasAuthority("USER")
+                        .requestMatchers( "/api/users/signUp", "/api/users/login").permitAll()
+                        .requestMatchers("/api/users/admin").hasAuthority("ADMIN")
+                        .requestMatchers("/api/users/user").hasAuthority("USER")
                         .anyRequest().authenticated())
-                // Enabling the session manager to control the session
-                .sessionManagement()
-                // .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-                // .STATELESS prevents the request from being saved in the session.
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                // Defining our authenticationProvider
+//                .sessionManagement()
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer -> new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .authenticationProvider(authenticationProvider())
-                // We are telling Spring Boot to check authFilter first, then, check the UsernamePasswordAuthenticationFilter
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

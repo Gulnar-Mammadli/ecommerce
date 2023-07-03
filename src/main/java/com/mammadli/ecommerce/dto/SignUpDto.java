@@ -24,6 +24,10 @@ public class SignUpDto {
     @NotNull
     private String password;
 
+    private String role;
+
+    private String token;
+
     @NotNull
     @Email
     @Size(max = 50)
